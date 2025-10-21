@@ -1,0 +1,43 @@
+# Virtual environment
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Data
+data/raw/
+data/processed/
+*.jpg
+*.jpeg
+*.png
+*.dcm
+
+# Models
+models/saved_models/*.pth
+*.pth
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Results
+results/
+*.png
+*.pdf
+
+# Logs
+*.log
