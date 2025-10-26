@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Image Anomaly Detection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+
+        .upload-section {
+            text-align: center;
+            padding: 40px;
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            background: #f8f9ff;
+            margin-bottom: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-section:hover {
+            background: #f0f2ff;
+            border-color: #764ba2;
+        }
+
+        .upload-section input[type="file"] {
+            display: none;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .upload-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .results {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .images-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .image-box {
+            text-align: center;
+        }
+
+        .image-box img {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .image-box h3 {
+            margin: 15px 0 10px 0;
+            color: #333;
+        }
+
+        .prediction-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .prediction-card h2 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .prediction-card .confidence {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .probabilities {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .prob-bar {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: left;
+        }
+
+        .prob-label {
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .prob-fill {
+            height: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 5px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .normal { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+        .abnormal { background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 Medical Image Anomaly Detection</h1>
+        <p class="subtitle">AI-Powered Analysis with Grad-CAM Visualization</p>
+
+        <div class="upload-section" onclick="document.getElementById('fileInput').click()">
+            <p style="font-size: 3em; margin-bottom: 20px;">📁</p>
+            <p style="font-size: 1.2em; color: #666; margin-bottom: 20px;">
+                Click to upload a medical image
+            </p>
+            <input type="file" id="fileInput" accept="image/*" onchange="uploadImage()">
+            <button class="upload-btn">Choose File</button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="font-size: 1.2em; color: #666;">Analyzing image...</p>
+        </div>
+
+        <div class="results" id="results">
+            <div class="prediction-card" id="predictionCard">
+                <h2>Prediction</h2>
+                <div id="predictionLabel" style="font-size: 2.5em; font-weight: bold;"></div>
+                <div class="confidence" id="confidence"></div>
+            </div>
+
+            <div class="probabilities" id="probabilities"></div>
+
+            <div class="images-grid">
+                <div class="image-box">
+                    <h3>Original Image</h3>
+                    <img id="originalImage" src="" alt="Original">
+                </div>
+                <div class="image-box">
+                    <h3>Grad-CAM Visualization</h3>
+                    <img id="gradcamImage" src="" alt="Grad-CAM">
+                    <p style="color: #666; margin-top: 10px; font-size: 0.9em;">
+                        Heatmap shows regions the model focused on
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function uploadImage() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+
+            if (!file) return;
+
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+
+            // Create form data
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Send to server
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayResults(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error analyzing image. Please try again.');
+                document.getElementById('loading').style.display = 'none';
+            });
+        }
+
+        function displayResults(data) {
+            // Hide loading
+            document.getElementById('loading').style.display = 'none';
+
+            // Show results
+            document.getElementById('results').style.display = 'block';
+
+            // Update prediction card
+            const predCard = document.getElementById('predictionCard');
+            if (data.prediction === 'NORMAL') {
+                predCard.className = 'prediction-card normal';
+            } else {
+                predCard.className = 'prediction-card abnormal';
+            }
+
+            document.getElementById('predictionLabel').textContent = data.prediction;
+            document.getElementById('confidence').textContent =
+                data.confidence.toFixed(1) + '%';
+
+            // Update probability bars
+            const probsDiv = document.getElementById('probabilities');
+            probsDiv.innerHTML = '';
+
+            for (const [className, prob] of Object.entries(data.probabilities)) {
+                const probBar = document.createElement('div');
+                probBar.className = 'prob-bar';
+                probBar.innerHTML = `
+                    <div class="prob-label">${className}</div>
+                    <div class="prob-fill" style="width: ${prob}%">
+                        ${prob.toFixed(1)}%
+                    </div>
+                `;
+                probsDiv.appendChild(probBar);
+            }
+
+            // Update images
+            document.getElementById('originalImage').src =
+                'data:image/png;base64,' + data.original_image;
+            document.getElementById('gradcamImage').src =
+                'data:image/png;base64,' + data.gradcam_image;
+
+            // Scroll to results
+            document.getElementById('results').scrollIntoView({
+                behavior: 'smooth'
+            });
+        }
+    </script>
+</body>
+</html>

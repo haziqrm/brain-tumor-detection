@@ -1,6 +1,5 @@
-"""
-Prepare brain tumor MRI dataset for training
-"""
+# Prepare brain tumor MRI dataset for training
+
 import os
 import shutil
 from pathlib import Path
@@ -9,9 +8,7 @@ from tqdm import tqdm
 
 
 def organize_brain_tumor_data():
-    """
-    Organize the brain tumor dataset into train/val/test splits
-    """
+    # Organize the brain tumor dataset into train/val/test splits
     print("=" * 60)
     print("ORGANIZING BRAIN TUMOR DATASET")
     print("=" * 60)
@@ -64,7 +61,7 @@ def organize_brain_tumor_data():
         source_dir = raw_train / class_name
         all_images = list(source_dir.glob('*.jpg')) + list(source_dir.glob('*.png'))
 
-        # Split into train/val (80/20)
+        # Split into train/val
         train_images, val_images = train_test_split(
             all_images,
             test_size=0.2,
