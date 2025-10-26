@@ -8,13 +8,10 @@ from pathlib import Path
 
 
 def create_val_split(train_dir, val_dir, val_ratio=0.2):
-    """Split training data into train/val"""
-
     print("=" * 60)
     print("CREATING VALIDATION SPLIT FOR BRAIN TUMORS")
     print("=" * 60)
 
-    # Check if train_dir exists
     if not os.path.exists(train_dir):
         print(f"ERROR: Training directory not found: {train_dir}")
         return
@@ -23,14 +20,11 @@ def create_val_split(train_dir, val_dir, val_ratio=0.2):
     print(f"Target: {val_dir}")
     print(f"Split ratio: {val_ratio * 100:.0f}% validation\n")
 
-    # Create validation directory
     os.makedirs(val_dir, exist_ok=True)
 
-    # Process each class
     for class_name in os.listdir(train_dir):
         class_train_path = os.path.join(train_dir, class_name)
 
-        # Skip if not a directory
         if not os.path.isdir(class_train_path):
             print(f"Skipping {class_name} (not a directory)")
             continue
@@ -38,7 +32,6 @@ def create_val_split(train_dir, val_dir, val_ratio=0.2):
         class_val_path = os.path.join(val_dir, class_name)
         os.makedirs(class_val_path, exist_ok=True)
 
-        # Get all images (jpg and png)
         images = [f for f in os.listdir(class_train_path)
                   if f.endswith(('.jpg', '.jpeg', '.png'))]
 
@@ -46,14 +39,12 @@ def create_val_split(train_dir, val_dir, val_ratio=0.2):
             print(f"{class_name}: No images found, skipping")
             continue
 
-        # Split into train/val
         train_imgs, val_imgs = train_test_split(
             images,
             test_size=val_ratio,
             random_state=42
         )
 
-        # Move validation images
         moved_count = 0
         for img in val_imgs:
             src = os.path.join(class_train_path, img)
@@ -65,7 +56,7 @@ def create_val_split(train_dir, val_dir, val_ratio=0.2):
             except Exception as e:
                 print(f"Error moving {img}: {e}")
 
-        print(f"✓ {class_name:15s}: {len(train_imgs):4d} train, {moved_count:4d} val")
+        print(f"{class_name:15s}: {len(train_imgs):4d} train, {moved_count:4d} val")
 
     print("\n" + "=" * 60)
     print("VALIDATION SPLIT COMPLETE!")
@@ -87,11 +78,9 @@ def create_val_split(train_dir, val_dir, val_ratio=0.2):
 
 
 if __name__ == '__main__':
-    # YOUR BRAIN TUMOR DATA PATHS
-    train_dir = 'data/raw/Training'  # ← Note capital T
+    train_dir = 'data/raw/Training'
     val_dir = 'data/raw/Validation'
 
-    # Check if directory exists
     if not os.path.exists(train_dir):
         print(f"ERROR: Directory not found: {train_dir}")
         print("\nAvailable directories in data/raw:")
@@ -100,10 +89,9 @@ if __name__ == '__main__':
                 print(f"  - {item}")
         exit(1)
 
-    # Run the split
     create_val_split(train_dir, val_dir, val_ratio=0.2)
 
-    print("\n✓ Done! You can now use these directories:")
+    print("\nDone! You can now use these directories:")
     print(f"  Train: {train_dir}")
     print(f"  Val:   {val_dir}")
     print(f"  Test:  data/raw/Testing")
